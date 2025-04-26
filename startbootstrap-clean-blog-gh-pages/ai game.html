@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cube Field Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #222;
+    }
+    canvas {
+      display: block;
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let cube = {
+  x: canvas.width / 2 - 25,
+  y: canvas.height - 100,
+  size: 50,
+  speed: 7
+};
+
+let blocks = [];
+let blockSpeed = 5;
+let gameOver = false;
+
+// Move cube
+let keys = {};
+
+window.addEventListener('keydown', function(e) {
+  keys[e.key] = true;
+});
+window.addEventListener('keyup', function(e) {
+  keys[e.key] = false;
+});
+
+// Create blocks
+function spawnBlock() {
+  let block = {
+    x: Math.random() * (canvas.width - 50),
+    y: -50,
+    size: 50
+  };
+  blocks.push(block);
+}
+
+// Update game
+function update() {
+  if (keys['ArrowLeft']) {
+    cube.x -= cube.speed;
+    if (cube.x < 0) cube.x = 0;
+  }
+  if (keys['ArrowRight']) {
+    cube.x += cube.speed;
+    if (cube.x + cube.size > canvas.width) cube.x = canvas.width - cube.size;
+  }
+
+  // Move blocks
+  for (let block of blocks) {
+    block.y += blockSpeed;
+
+    // Check collision
+    if (block.y + block.size > cube.y && block.y < cube.y + cube.size &&
+        block.x + block.size > cube.x && block.x < cube.x + cube.size) {
+      gameOver = true;
+    }
+  }
+
+  // Remove off-screen blocks
+  blocks = blocks.filter(block => block.y < canvas.height + block.size);
+}
+
+// Draw everything
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw cube
+  ctx.fillStyle = 'lightblue';
+  ctx.fillRect(cube.x, cube.y, cube.size, cube.size);
+
+  // Draw blocks
+  ctx.fillStyle = 'red';
+  for (let block of blocks) {
+    ctx.fillRect(block.x, block.y, block.size, block.size);
+  }
+}
+
+// Game loop
+function gameLoop() {
+  if (gameOver) {
+    ctx.fillStyle = 'white';
+    ctx.font = '48px sans-serif';
+    ctx.fillText('Game Over!', canvas.width / 2 - 120, canvas.height / 2);
+    return;
+  }
+  
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+// Start block spawner
+setInterval(spawnBlock, 800);
+
+// Start game
+gameLoop();
+</script>
+
+</body>
+</html>
